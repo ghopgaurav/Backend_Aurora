@@ -1,11 +1,17 @@
 # Search API – Take-Home Assignment
 
 A lightweight search service built on top of the provided `/messages` API.
-- **Live URL (health check):**  
-  `https://search-api-sparkling-log-5301.fly.dev/` → `{"status": "running"}`
+## Useful Links
 
-- **Interactive docs (OpenAPI/Swagger):**  
-  `https://search-api-sparkling-log-5301.fly.dev/docs`
+- **Live Deployment:**  
+  https://search-api-sparkling-log-5301.fly.dev
+
+- **Swagger Documentation:**  
+  [`/docs`](https://search-api-sparkling-log-5301.fly.dev/docs)
+
+- **Messages API (Assignment Spec):**  
+  [GET /messages](https://november7-730026606190.europe-west1.run.app/docs#/default/get_messages_messages__get)
+
 
 The service:
 
