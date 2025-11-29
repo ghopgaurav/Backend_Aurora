@@ -14,38 +14,40 @@ from app.services.cache_updater import full_refresh, periodic_refresh_task
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan context manager."""
-    # Startup: log and load all messages
     logger.info(f"Starting {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info(f"Environment: {settings.ENVIRONMENT}")
     logger.info(f"Debug mode: {settings.DEBUG}")
-    
-    logger.info("[Startup] Loading all messages into cache...")
-    await full_refresh()
 
-    logger.info("[Startup] Starting background refresh task...")
+    # Load cache safely
+    try:
+        logger.info("[Startup] Loading all messages into cache...")
+        await full_refresh()
+    except Exception as e:
+        logger.error(f"[Startup] Full refresh failed: {e}")
+        logger.error("Continuing startup without cache...")
+
+    # Background task
     task = asyncio.create_task(periodic_refresh_task())
 
-    yield  # API starts running
-
-    logger.info("[Shutdown] Stopping refresh task...")
-    task.cancel()
     try:
-        await task
-    except asyncio.CancelledError:
-        pass
-    logger.info(f"Shutting down {settings.APP_NAME}")
-
+        yield
+    finally:
+        logger.info("[Shutdown] Cleaning up…")
+        try:
+            task.cancel()
+            await task
+        except Exception:
+            pass
 
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     description=settings.APP_DESCRIPTION,
     version=settings.APP_VERSION,
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
-# Add CORS middleware
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -54,24 +56,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(router)
 
 
 @app.get("/")
 async def root():
-    """Root endpoint."""
-    return {
-        "name": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-        "status": "running"
-    }
+    return {"status": "running"}
 
 
 if __name__ == "__main__":
     import uvicorn
-    
-    logger.info(f"Starting server on {settings.SERVER_HOST}:{settings.SERVER_PORT}")
+
     uvicorn.run(
         "main:app",
         host=settings.SERVER_HOST,
