@@ -257,6 +257,15 @@ cd search_api
 python3.12 -m venv venv
 source venv/bin/activate
 
+### 7.3 Run with Docker
+
+```bash
+# Build image
+docker build -t search-api .
+
+# Run container
+docker run -p 8000:8000 search-api
+
 pip install --upgrade pip
 pip install -r requirements.txt
 
